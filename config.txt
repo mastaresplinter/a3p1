@@ -83,4 +83,4 @@ arm_boost=1
 
 # Set GPIO26 to be an output set to 1
 #gpio=26=op,dh
-kernel=/rt/a2p3.img 
+kernel=/rt/a3p1.img 

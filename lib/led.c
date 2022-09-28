@@ -8,6 +8,8 @@
 #include "rpi-systimer.h"
 #include "rpi-gpio.h"
 
+int led_isOn = 0;
+
 void led_init(){
 	/* Write 1 to the GPIO16 init nibble in the Function Select 1 GPIO
        peripheral register to enable GPIO16 as an output */
@@ -18,8 +20,6 @@ void led_init(){
 #endif	
 }
 
-
-
 void led_on(){
 	/* Set the GPIO16 output high ( Turn OK LED off )*/
 	GPIO->GPSET0 |= (1 << 16);
@@ -28,24 +28,31 @@ void led_on(){
 	   Declarations in rpi-gpio.h
 	*/
 	GPIO->LED_GPSET |= (1 << LED_GPIO_BIT);
-#endif		
+#endif
+led_isOn = 1;		
 }
 
 void led_off(){
 	/* Set the GPIO16 output high ( Turn OK LED off )*/
 	GPIO->GPCLR0 |= (1 << 16);
+
 #if defined( RPI3 ) && defined( IOBPLUS )		
 	/* Set the ACT LED attached to GPIO29 output high ( Turn OK LED off )
 	   Declarations in rpi-gpio.h
 	*/
 	GPIO->LED_GPCLR |= (1 << LED_GPIO_BIT);
 #endif	
+led_isOn = 0;
+}
+
+void led_toggle()
+{
+  if (led_isOn == 1)
+    led_off();
+  else
+    led_on();
 }
 
 void led_blink(){
 	// Implemented in Assignment 1!!!
-}
-
-void led_toggle() {
-	// Implemented in Assignment 2???
 }

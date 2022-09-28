@@ -135,8 +135,8 @@ static void dispatch(thread next) {
  * @param int arg is the parameter to the start routine
  */
 void spawn(void (* function)(int), int arg) {
-	thread newp;
-	DISABLE();
+	thread newp;		//Init Thread block instance
+	DISABLE();			//
 	if (!initialized) 
 		initialize();
 	newp = dequeue(&freeQ);

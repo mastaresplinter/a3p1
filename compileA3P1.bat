@@ -26,4 +26,4 @@ copy /Y %MAINFILE%.img %SDDRIVEIMG%
 copy /Y %MAINFILE%.elf %SDDRIVEIMG%
 copy /Y config.txt %SDDRIVE%
 if errorlevel 1 timeout 5
-#timeout 1
+timeout 1

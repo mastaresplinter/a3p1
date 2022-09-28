@@ -17,6 +17,8 @@
 	do { for(volatile int DELAYx = 0; DELAYx < 5000; DELAYx++); } while(0);
 
 int cnt;
+uint8_t cur_col = 0;				//Column of current line
+uint8_t cur_row = 0;
 
 /* Bit-Banging SPI Driver */
 static void spi_init(void){
@@ -132,7 +134,7 @@ static void lcd_write_cmd(uint8_t cmd){
 	lcd_busy_wait();
 	/* write low nibble */
     lcd_pulse( LCD_BL | (cmd & 0x0F) );
-	// lcd_busy_wait();
+	LCD_DELAY;
 }
 
 static void lcd_write_data(uint8_t data){
@@ -185,13 +187,21 @@ uint8_t piface_getc(void){
  */
 void piface_putc(char c)
 {
-	if (c == '\n')
+	if (((int)c < 32 || (int)c > 126) && c != '\n')
 	{
-		lcd_write_cmd(SET_DDRAM_ADR | (1 << 6));
+		fprintf(stderr, "Error: Character code outside of scope.");
+		return;
+	}
+	else if (c == '\n' || cur_col == 16)
+	{
+		cur_row = cur_row < 1 ? 1 : 0;
+		cur_col = 0;
+		piface_set_cursor(cur_col, cur_row);
 	}
 	else
 	{
 		lcd_write_data(c);
+		cur_col++;
 	}
 }
 
@@ -199,26 +209,15 @@ void piface_putc(char c)
  */
 void piface_puts(char s[])
 {
-    int i = 0;
-	int col = 0;		//Column of current line
-	while (s[i] != '\0')
+	if (s == NULL)
 	{
-		if (col > 16)
-		{
-			piface_putc('\n');
-			piface_putc(s[i]);	
-		}
-		else if(col > 32)
-		{
-			fprintf(stderr, "Error: Cursor outside of screen");
-			break;
-		}
-		else
-		{
-			piface_putc(s[i]);
-			col++;
-			i++;
-		}
+		fprintf(stderr, "Error: Null given to piface_puts()");
+		return;
+	}
+	while (*s)		//While we have a next character in the array
+	{
+		piface_putc(*s);	//Write current character to the display
+		s++;
 	}
 }
 
@@ -229,15 +228,17 @@ void piface_clear(void)
 {
     /* clear display */
 	lcd_write_cmd(0x01);
+	cur_col = 0;
+	cur_row = 0;
 }
-
-
 
 /** @brief Sets the cursor on a specific row and column
  *  Please check the url: http://piface.github.io/libpifacedigital/
  */
 void piface_set_cursor(uint8_t col, uint8_t row)
 {
+	cur_col = col;
+	cur_row = row;
     volatile uint8_t t = col < 39 ? col : 39;
     col = t > 0 ? t : 0;
     t = row < 1 ? row : 1;
@@ -268,7 +269,33 @@ void piface_set_cursor(uint8_t col, uint8_t row)
  *     void printAtSeg(int seg, const char* fmt, ...);
  */
 void print_at_seg(int seg, int num) {
-    // To be implemented
+	if (seg < 0 || seg > 3){
+		fprintf(stderr, "Error: Invalid segment number.");
+		return;
+	}
+    int col, row = 0;
+	char str[8];
+	if(seg == 0){
+		col = 0;
+		row = 0;
+	}
+	else if(seg == 1){
+		col = 8;
+		row = 0;
+	}
+	else if(seg == 2){
+		col = 0;
+		row = 1;
+	}
+	else if(seg == 3){
+		col = 8;
+		row = 1;
+	}
+
+	piface_set_cursor(col, row);
+	sprintf(str, "S%i:%i",seg , num);
+	piface_puts(str);
+
 }
 
 /** @brief Similar to print_at_seg, but displays arbitrary content on a given segment. For example:

@@ -37,8 +37,8 @@
 int is_prime(int i) {
     // To be implemented!!!
     if (i <= 1) return 0;
-    if (i % 2 == 0 && i > 2) return 0;
-    for(int j = 3; j < i / 2; j+= 2)
+    if (i % 2 == 0 && i > 2) return 0;  //Check even numbers
+    for(int j = 3; j < i; j+= 2)    //Check uneven numbers
         if (i % j == 0)
             return 0;
     return 1;
@@ -50,7 +50,8 @@ int is_prime(int i) {
 void computePrimes(int seg) {
     for(int n = 0; ; n++) {  
         if (is_prime(n)) {
-            PUTTOLDC("T%i: Prime %i\n", seg, n);
+            print_at_seg(seg, n);
+            //PUTTOLDC("T%i: Prime %i\n", seg, n);
 			RPI_WaitMicroSeconds(500000); //delay of 0.5s added for visualization purposes!!!
             yield();
         }
@@ -62,7 +63,8 @@ void computePrimes(int seg) {
  */
 void computePower(int seg) {
 	for(int n = 0; ; n++) {
-		PUTTOLDC("T%i: %i^2=%i\n", seg, n, n*n);
+		print_at_seg(seg, n*n);
+        //PUTTOLDC("T%i: %i^2=%i\n", seg, n, n*n);
 		RPI_WaitMicroSeconds(500000); //delay of 0.5s added for visualization purposes!!!
         yield();
     }
@@ -75,8 +77,16 @@ void computePower(int seg) {
 void computeExponential(int seg) {
 	char str[32];
 	ExpStruct* value;
-    int n; 
+    int n, i; 
     while (1) {
+        for(i = 0; i < 21; i++){
+            value = iexp(i);
+            if(seg % 2 == 0)
+                print_at_seg(seg, value->expInt);
+            else
+                print_at_seg(seg, value->expFraction);
+            free(value);
+        }
 	}
 }
 
@@ -85,19 +95,19 @@ void computeExponential(int seg) {
  */
 void toggle_led(int seg) {
 	while (1) {
+        led_toggle();
+        RPI_WaitMicroSeconds(50000);
 	}
 }
 
 int main() {
 	led_init();
-	
 	piface_init();
 	piface_clear();
-	
+
 	piface_puts("DT8025 - A3P1");
 	RPI_WaitMicroSeconds(2000000);	
 	piface_clear();
-
 	spawn(computePower, 0);
 	computePrimes(1);
 }
